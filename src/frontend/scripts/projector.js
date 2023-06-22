@@ -2,12 +2,15 @@ import { LightSource } from "./lightsource.js";
 import { Object3D } from "./object3D.js";
 import { Viewer } from "./viewer.js";
 import { CharacterBrush } from "./brush.js";
+import { Torus } from "./torus.js";
 export class Projector{
     
     constructor(){
         this.lightsource = new LightSource(0,20,-10);
-        this.object3d = new Object3D([0,0,200000], 500);
+        // this.object3d = new Object3D([0,0,110], 100);
+        this.object3d = new Torus([0,0,110]);
         this.viewer = new Viewer(0,0,-10);
+        
     }
 
     setCanvasScreen(canvasHTML){
@@ -37,7 +40,7 @@ export class Projector{
     }
 
     update(){
-        this.object3d.rotate3D(0.00,0.00,0.01);
+        this.object3d.rotate3D(-0.05,0.05,0.02);
         this.lightsource.castRays(this.object3d);
         let luminosities = this.lightsource.getLuminosities(this.object3d);
         // console.debug("luminosities",luminosities);

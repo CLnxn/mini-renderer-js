@@ -43,9 +43,10 @@ export class CharacterBrush extends Brush {
         this.charset = charset;
     }
     getCharacterByLuminosity(raw_luminosity){
+        let n  = this.charset.length-1;
         return raw_luminosity == 0?
          this.charset[0] :
-          this.charset[Math.ceil((this.charset.length-1)*raw_luminosity)];
+          this.charset[Math.min(Math.ceil((n)*raw_luminosity),n)];
     }
     loadLuminosityData(pointLuminosityPairs){
         this.charPointPairs = Array(pointLuminosityPairs.length);

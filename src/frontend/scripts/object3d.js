@@ -1,4 +1,4 @@
-import { addVectors } from "./utils.js";
+import { addVectors, subtractVectors } from "./utils.js";
 // base class for custom render objects to extend from.
 export class Object3D {
 
@@ -7,6 +7,7 @@ export class Object3D {
         this.center = center; 
         this.length = length;
         this.tag = tag;
+        
         
     }
     // default characteristic function (shape_fn) for the object. t is in radians
@@ -27,12 +28,12 @@ export class Object3D {
             }
     }
     // this function determines the object's shape.
-    shape_fn(t, n_derivative=0){
+    shape_fn(t, v, n_derivative=0){
         return this.circle(t, n_derivative);
 
     }
-    getSurfaceVectAt(t){
-        return this.shape_fn(t,2).map(x=>-x);
+    getSurfaceVectAt(t,v){
+        return this.shape_fn(t,v,2).map(x=>-x);
 
     }
     translate3D(){
@@ -48,21 +49,36 @@ export class Object3D {
             x*Math.cos(roll)*Math.sin(pitch) + y*Math.sin(roll)
         ]
     }
-    rotatePoint(pt, yaw, pitch ,roll){
+    rotatePointIntrinsic(pt, yaw, pitch ,roll){
         let x,y,z;
-        [x,y,z]= pt
+        // local coord
+        [x,y,z] = subtractVectors(pt,this.center);
+        pt = [
+            x*(Math.cos(pitch)*Math.cos(yaw))+y*(Math.cos(yaw)*Math.sin(pitch)*Math.sin(roll)-Math.sin(yaw)*Math.cos(pitch))+z*(Math.cos(yaw)*Math.sin(pitch)*Math.cos(roll)+Math.sin(yaw)*Math.sin(roll)),
+            x*(Math.sin(yaw)*Math.cos(pitch))+y*(Math.sin(yaw)*Math.sin(pitch)*Math.sin(roll)+Math.cos(yaw)*Math.cos(roll))+z*(Math.sin(yaw)*Math.sin(pitch)*Math.cos(roll)-Math.cos(yaw)*Math.sin(roll)),
+            x*(-Math.sin(pitch))+y*(Math.cos(pitch)*Math.sin(roll)) + z*(Math.cos(pitch)*Math.cos(roll))
+        ]
+        return addVectors(this.center,pt);
+        
+    }
+    rotatePointExtrinsic(pt, yaw, pitch ,roll){
+        let x,y,z;
+        // local coord
+        [x,y,z] = pt
         return [
             x*(Math.cos(pitch)*Math.cos(yaw))+y*(Math.cos(yaw)*Math.sin(pitch)*Math.sin(roll)-Math.sin(yaw)*Math.cos(pitch))+z*(Math.cos(yaw)*Math.sin(pitch)*Math.cos(roll)+Math.sin(yaw)*Math.sin(roll)),
             x*(Math.sin(yaw)*Math.cos(pitch))+y*(Math.sin(yaw)*Math.sin(pitch)*Math.sin(roll)+Math.cos(yaw)*Math.cos(roll))+z*(Math.sin(yaw)*Math.sin(pitch)*Math.cos(roll)-Math.cos(yaw)*Math.sin(roll)),
             x*(-Math.sin(pitch))+y*(Math.cos(pitch)*Math.sin(roll)) + z*(Math.cos(pitch)*Math.cos(roll))
         ]
+       
+        
     }
     //yaw, pitch and roll are measured in radians.
     rotate3D(yaw, pitch, roll){
         for(let i =0; i < this.loadedPointsData.length; i++){
             let ptData = this.loadedPointsData[i];
-            let rotatedPt = this.rotatePoint(ptData[0], yaw, pitch, roll);
-            let rotateNorm = this.rotatePoint(ptData[1], yaw, pitch, roll);
+            let rotatedPt = this.rotatePointIntrinsic(ptData[0], yaw, pitch, roll);
+            let rotateNorm = this.rotatePointIntrinsic(ptData[1], yaw, pitch, roll);
             this.loadedPointsData[i] = [rotatedPt, rotateNorm];
         }
     }
@@ -71,8 +87,8 @@ export class Object3D {
         let pointsData = Array(n)
         for(let i = 0; i < n; i++){
             let t = ((i+1.0)/n)*2*Math.PI;
-            let surface_vect = this.getSurfaceVectAt(t);
-            let point3D = this.shape_fn(t);
+            let surface_vect = this.getSurfaceVectAt(t,0);
+            let point3D = this.shape_fn(t,0);
             pointsData[i] = [point3D, surface_vect];
         }
         this.loadedPointsData = pointsData

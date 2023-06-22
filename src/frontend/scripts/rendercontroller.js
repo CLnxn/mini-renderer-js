@@ -11,7 +11,7 @@ const projector = new Projector();
 const canvasHTML = getCanvas();
 
 projector.setCanvasScreen(canvasHTML);
-projector.getViewer().setCanvasPixelRatio(0.01,0.01);
+projector.getViewer().setCanvasPixelRatio(0.25,0.25);
 projector.start();
 
 let t = undefined

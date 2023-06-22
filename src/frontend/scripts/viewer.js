@@ -8,7 +8,7 @@ export class Viewer{
     constructor(x,y,z){
         this.canvas = undefined;
         this.position = [x,y,z];
-        this.field_of_view = 5; //5 units infront (+ve z direction) from the position of viewer
+        this.field_of_view = 1500; //5 units infront (+ve z direction) from the position of viewer
     }
     setCanvas(canvasHTML){
         this.canvas = new Canvas(canvasHTML);
